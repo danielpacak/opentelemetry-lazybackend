@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pprofile"
@@ -101,6 +102,15 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 					sample := samples.At(l)
 
 					fmt.Println("------------------- New Sample --------------------")
+
+					for t := 0; t < sample.TimestampsUnixNano().Len(); t++ {
+						sampleTimestampUnixNano := sample.TimestampsUnixNano().At(t)
+						sampleTimestampNano := time.Unix(0, int64(sampleTimestampUnixNano))
+						fmt.Printf("  timestamp[%d]: %d (%s)\n", t,
+							sampleTimestampUnixNano,
+							sampleTimestampNano)
+					}
+
 					if s.config.ExportSampleAttributes {
 						sampleAttrs := sample.AttributeIndices()
 						for n := 0; n < sampleAttrs.Len(); n++ {

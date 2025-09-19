@@ -53,32 +53,34 @@ go build
 
 ``` console
 $ ./opentelemetry-profiles-lazybackend
-2025/09/19 11:45:49 INFO starting profiles lazy backend server pid=14049 uid=1000 gid=1000
+2025/09/19 12:13:18 INFO starting profiles lazy backend server pid=22712 uid=1000 gid=1000
 --------------- New Resource Profile --------------
-  container.id: 
+  container.id: ca893606007eabf5d019726e7cfc9a1b888615a4e1a9fbb6090794462009ae83
 ------------------- New Profile -------------------
   ProfileID: 00000000000000000000000000000000
   Dropped attributes count: 0
   SampleType: samples
 ------------------- New Sample --------------------
-  thread.name: ebpf-profiler
-  process.executable.name: ebpf-profiler
-  process.executable.path: /home/dpacak/go/src/github.com/danielpacak/opentelemetry-ebpf-profiler/ebpf-profiler
-  process.pid: 14168
-  thread.id: 14176
+  timestamp[0]: 1758276802457210575 (2025-09-19 12:13:22.457210575 +0200 CEST)
+  thread.name: kube-controller
+  process.executable.name: kube-controller-manager
+  process.executable.path: /usr/local/bin/kube-controller-manager
+  process.pid: 2594
+  thread.id: 6623
 ---------------------------------------------------
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.(*elfExtractor).parseFDE, File: /agent/nativeunwind/elfunwindinfo/elfehframe.go, Line: 1004, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.(*elfExtractor).walkBinSearchTable, File: /agent/nativeunwind/elfunwindinfo/elfehframe.go, Line: 1183, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.(*elfExtractor).parseEHFrame, File: /agent/nativeunwind/elfunwindinfo/elfehframe.go, Line: 1238, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.extractFile, File: /agent/nativeunwind/elfunwindinfo/stackdeltaextraction.go, Line: 207, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.ExtractELF, File: /agent/nativeunwind/elfunwindinfo/stackdeltaextraction.go, Line: 180, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/nativeunwind/elfunwindinfo.(*ELFStackDeltaProvider).GetIntervalStructuresForFile, File: /agent/nativeunwind/elfunwindinfo/stackdeltaprovider.go, Line: 37, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/processmanager/execinfomanager.(*ExecutableInfoManager).AddOrIncRef, File: /agent/processmanager/execinfomanager/manager.go, Line: 187, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/processmanager.(*ProcessManager).handleNewMapping, File: /agent/processmanager/processinfo.go, Line: 290, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/processmanager.(*ProcessManager).processNewExecMapping, File: /agent/processmanager/processinfo.go, Line: 427, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/processmanager.(*ProcessManager).synchronizeMappings, File: /agent/processmanager/processinfo.go, Line: 535, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/processmanager.(*ProcessManager).SynchronizeProcess, File: /agent/processmanager/processinfo.go, Line: 672, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/tracer.(*Tracer).processPIDEvents, File: /agent/tracer/events.go, Line: 50, Column: 0
-Instrumentation: go, Function: go.opentelemetry.io/ebpf-profiler/tracer.(*Tracer).StartPIDEventProcessor.gowrap1, File: /agent/tracer/events.go, Line: 41, Column: 0
-Instrumentation: go, Function: runtime.goexit, File: /agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.6.linux-amd64/src/runtime/asm_amd64.s, Line: 1701, Column: 0
+Instrumentation: kernel, Function: __rcu_read_lock, File: , Line: 0, Column: 0
+Instrumentation: kernel, Function: task_work_run, File: , Line: 0, Column: 0
+Instrumentation: kernel, Function: syscall_exit_to_user_mode, File: , Line: 0, Column: 0
+Instrumentation: kernel, Function: do_syscall_64, File: , Line: 0, Column: 0
+Instrumentation: kernel, Function: entry_SYSCALL_64_after_hwframe, File: , Line: 0, Column: 0
+Instrumentation: go, Function: internal/runtime/syscall.Syscall6, File: internal/runtime/syscall/asm_linux_amd64.s, Line: 36, Column: 0
+Instrumentation: go, Function: internal/runtime/syscall.EpollWait, File: internal/runtime/syscall/syscall_linux.go, Line: 33, Column: 0
+Instrumentation: go, Function: runtime.netpoll, File: runtime/netpoll_epoll.go, Line: 117, Column: 0
+Instrumentation: go, Function: runtime.findRunnable, File: runtime/proc.go, Line: 3581, Column: 0
+Instrumentation: go, Function: runtime.schedule, File: runtime/proc.go, Line: 3996, Column: 0
+Instrumentation: go, Function: runtime.park_m, File: runtime/proc.go, Line: 4104, Column: 0
+Instrumentation: go, Function: runtime.mcall, File: runtime/asm_amd64.s, Line: 463, Column: 0
+------------------- End Sample --------------------
+------------------- End Profile -------------------
+-------------- End Resource Profile ---------------
 ```

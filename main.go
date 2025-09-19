@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
-	"time"
 
 	"go.opentelemetry.io/collector/pdata/pprofile/pprofileotlp"
 	"google.golang.org/grpc"
@@ -22,7 +22,8 @@ func main() {
 }
 
 func run() error {
-	fmt.Printf("Starting OpenTelemetry Profiles Backend: %v\n", os.Getpid())
+	slog.Info("starting profiles lazy backend server",
+		"pid", os.Getpid(), "uid", os.Getuid(), "gid", os.Getgid())
 	port := 4137
 	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
@@ -31,18 +32,18 @@ func run() error {
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
-	pprofileotlp.RegisterGRPCServer(s, &fakeProfilesServer{})
+	pprofileotlp.RegisterGRPCServer(s, &profilesServer{})
 
 	err = s.Serve(lis)
 	//s.GracefulStop()
 	return err
 }
 
-type fakeProfilesServer struct {
+type profilesServer struct {
 	pprofileotlp.UnimplementedGRPCServer
 }
 
-func (f fakeProfilesServer) Export(_ context.Context, request pprofileotlp.ExportRequest) (pprofileotlp.ExportResponse, error) {
-	fmt.Printf("%v: Yoooo!! (%d)\n", time.Now(), request.Profiles().SampleCount())
+func (f profilesServer) Export(_ context.Context, request pprofileotlp.ExportRequest) (pprofileotlp.ExportResponse, error) {
+	slog.Info("receiving profiles", "count", request.Profiles().SampleCount())
 	return pprofileotlp.NewExportResponse(), nil
 }

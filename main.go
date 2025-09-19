@@ -12,6 +12,9 @@ import (
 
 	// Import the gzip package which auto-registers the gzip gRPC compressor.
 	_ "google.golang.org/grpc/encoding/gzip"
+
+	"github.com/danielpacak/opentelemetry-profiles-lazybackend/receiver"
+	"github.com/danielpacak/opentelemetry-profiles-lazybackend/receiver/stdout"
 )
 
 func main() {
@@ -32,18 +35,28 @@ func run() error {
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
-	pprofileotlp.RegisterGRPCServer(s, &profilesServer{})
+	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(stdout.NewReceiver(stdout.DefaultConfig())))
 
 	err = s.Serve(lis)
 	//s.GracefulStop()
 	return err
 }
 
-type profilesServer struct {
-	pprofileotlp.UnimplementedGRPCServer
+func newProfilesServer(receiver receiver.Receiver) *profilesServer {
+	return &profilesServer{
+		receiver: receiver,
+	}
 }
 
-func (f profilesServer) Export(_ context.Context, request pprofileotlp.ExportRequest) (pprofileotlp.ExportResponse, error) {
-	slog.Info("receiving profiles", "count", request.Profiles().SampleCount())
+type profilesServer struct {
+	pprofileotlp.UnimplementedGRPCServer
+	receiver receiver.Receiver
+}
+
+func (f *profilesServer) Export(ctx context.Context, request pprofileotlp.ExportRequest) (pprofileotlp.ExportResponse, error) {
+	err := f.receiver.Receive(ctx, request.Profiles())
+	if err != nil {
+		slog.Error("failed to receive profiles")
+	}
 	return pprofileotlp.NewExportResponse(), nil
 }

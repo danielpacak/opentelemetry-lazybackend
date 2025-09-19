@@ -81,7 +81,15 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 
 				fmt.Println("------------------- New Profile -------------------")
 				fmt.Printf("  ProfileID: %x\n", [16]byte(profile.ProfileID()))
+				fmt.Printf("  Time: %v\n", profile.Time().AsTime())
+				fmt.Printf("  Duration: %v\n", profile.Duration())
+				fmt.Printf("  PeriodType: [%v, %v, %v]\n",
+					stringTable.At(int(profile.PeriodType().TypeStrindex())),
+					stringTable.At(int(profile.PeriodType().UnitStrindex())),
+					profile.PeriodType().AggregationTemporality().String())
+				fmt.Printf("  Period: %v\n", profile.Period())
 				fmt.Printf("  Dropped attributes count: %d\n", profile.DroppedAttributesCount())
+
 				sampleType := "samples"
 				for n := 0; n < profile.SampleType().Len(); n++ {
 					sampleType = stringTable.At(int(profile.SampleType().At(n).TypeStrindex()))

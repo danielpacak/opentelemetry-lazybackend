@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net"
@@ -25,11 +26,13 @@ func main() {
 }
 
 func run() error {
-	address := fmt.Sprintf("127.0.0.1:%d", 4137)
+	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4137), "listen address (host:port)")
+	flag.Parse()
+
 	slog.Info("starting lazy backend server",
-		"address", address, "pid", os.Getpid(),
+		"address", *address, "pid", os.Getpid(),
 		"uid", os.Getuid(), "gid", os.Getgid())
-	lis, err := net.Listen("tcp", address)
+	lis, err := net.Listen("tcp", *address)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danielpacak/opentelemetry-profiles-lazybackend/libpf"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pprofile"
@@ -14,6 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/danielpacak/opentelemetry-lazybackend/libpf"
 )
 
 type Config struct {

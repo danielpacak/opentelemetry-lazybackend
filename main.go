@@ -13,8 +13,8 @@ import (
 	// Import the gzip package which auto-registers the gzip gRPC compressor.
 	_ "google.golang.org/grpc/encoding/gzip"
 
-	"github.com/danielpacak/opentelemetry-profiles-lazybackend/receiver"
-	"github.com/danielpacak/opentelemetry-profiles-lazybackend/receiver/stdout"
+	"github.com/danielpacak/opentelemetry-lazybackend/receiver"
+	"github.com/danielpacak/opentelemetry-lazybackend/receiver/stdout"
 )
 
 func main() {
@@ -25,10 +25,11 @@ func main() {
 }
 
 func run() error {
-	slog.Info("starting profiles lazy backend server",
-		"pid", os.Getpid(), "uid", os.Getuid(), "gid", os.Getgid())
-	port := 4137
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	address := fmt.Sprintf("127.0.0.1:%d", 4137)
+	slog.Info("starting lazy backend server",
+		"address", address, "pid", os.Getpid(),
+		"uid", os.Getuid(), "gid", os.Getgid())
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return err
 	}

@@ -114,7 +114,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 					for t := 0; t < sample.TimestampsUnixNano().Len(); t++ {
 						sampleTimestampUnixNano := sample.TimestampsUnixNano().At(t)
 						sampleTimestampNano := time.Unix(0, int64(sampleTimestampUnixNano))
-						fmt.Printf("  timestamp[%d]: %d (%s)\n", t,
+						fmt.Printf("  Timestamp[%d]: %d (%s)\n", t,
 							sampleTimestampUnixNano,
 							sampleTimestampNano)
 					}

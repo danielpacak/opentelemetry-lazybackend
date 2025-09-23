@@ -1,9 +1,9 @@
-module github.com/danielpacak/opentelemetry-profiles-lazybackend
+module github.com/danielpacak/opentelemetry-lazybackend
 
 go 1.24.3
 
 require (
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/pdata/pprofile v0.132.0
 	google.golang.org/grpc v1.75.0
 )
@@ -16,7 +16,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.9.3
-	go.opentelemetry.io/collector/pdata v1.38.0 // indirect
+	go.opentelemetry.io/collector/pdata v1.38.0
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect

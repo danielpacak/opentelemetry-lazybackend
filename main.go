@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 
 	"go.opentelemetry.io/collector/pdata/pprofile/pprofileotlp"
@@ -15,7 +16,10 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip"
 
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver"
+	"github.com/danielpacak/opentelemetry-lazybackend/receiver/prometheus"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/stdout"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -37,12 +41,23 @@ func run() error {
 		return err
 	}
 
+	receivers := receiver.NewChain(
+		prometheus.NewReceiver(),
+		stdout.NewReceiver(stdout.DefaultConfig()))
+
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
-	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(stdout.NewReceiver(stdout.DefaultConfig())))
+	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(receivers))
 
-	err = s.Serve(lis)
-	//s.GracefulStop()
+	go func() {
+		err = s.Serve(lis)
+		//s.GracefulStop()
+	}()
+
+	slog.Info("starting metrics server", "address", "127.0.0.1:2112")
+	http.Handle("/metrics", promhttp.Handler())
+	http.ListenAndServe(":2112", nil)
+
 	return err
 }
 

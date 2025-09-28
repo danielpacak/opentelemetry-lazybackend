@@ -12,16 +12,19 @@ flowchart LR
   clickhouse@{ shape: cyl, label: "ClickHouse" }
   sqlite@{ shape: cyl, label: "SQLite" }
   stdout["Stdout"]
+  prometheus@{ shape: cyl, label: "Prometheus" }
 
   opentelemetry-ebpf-profiler e1@--> opentelemetry-lazybackend
   opentelemetry-lazybackend e2@--> clickhouse
   opentelemetry-lazybackend e3@--> sqlite
   opentelemetry-lazybackend e4@--> stdout
+  opentelemetry-lazybackend e5@--> prometheus
 
   e1@{ animate: true }
   e2@{ animate: true }
   e3@{ animate: true }
   e4@{ animate: true }
+  e5@{ animate: true }
 ```
 
 ## Quickstart Guide

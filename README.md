@@ -132,6 +132,14 @@ docker run --rm  --name lazybackend -p 4137:4137 -p 2112:2112 \
   -metrics 0.0.0.0:2112
 ```
 
+## Prometheus Receiver
+
+The Prometheus receiver allows gathering some stats about received profiles, stack traces, and functions.
+For example, the following Grafana dashboard shows the distribution of functions grouped by
+process executable name and language (= frame type).
+
+![](./docs/grafana-functions-distribution.png)
+
 ## Similar Projects
 
 Notice that the OTel Debug Exporter supports profiles, but is pretty useless because it dumps symbol

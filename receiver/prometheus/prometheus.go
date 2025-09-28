@@ -20,11 +20,11 @@ var (
 	samplesReceived = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "lazybackend_received_samples_total",
 		Help: "The total number of received samples",
-	}, []string{"container_id"})
+	}, []string{"container_id", "process_executable_name"})
 	locationsReceived = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "lazybackend_received_locations_total",
 		Help: "The total number of received locations",
-	}, []string{"container_id", "language"})
+	}, []string{"container_id", "process_executable_name", "language"})
 )
 
 type Prometheus struct {
@@ -60,11 +60,26 @@ func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
 			sp := rp.ScopeProfiles().At(spi)
 			for pi := 0; pi < sp.Profiles().Len(); pi++ {
 				p := sp.Profiles().At(pi)
-				// Count samples (stack traces) that we are receiving
-				samplesReceived.WithLabelValues(containerID).Add(float64(p.Sample().Len()))
 
 				for sampleIdx := 0; sampleIdx < p.Sample().Len(); sampleIdx++ {
 					s := p.Sample().At(sampleIdx)
+
+					processExecutableName := "unknown"
+
+					sampleAttrs := s.AttributeIndices()
+					for n := 0; n < sampleAttrs.Len(); n++ {
+						attr := attributeTable.At(int(sampleAttrs.At(n)))
+						attrKey := stringTable.At(int(attr.KeyStrindex()))
+						if attrKey == string(semconv.ProcessExecutableNameKey) {
+							processExecutableNameValue := attr.Value().AsString()
+							if processExecutableNameValue != "" {
+								processExecutableName = processExecutableNameValue
+							}
+						}
+					}
+
+					// Count samples (stack traces) that we are receiving
+					samplesReceived.WithLabelValues(containerID, processExecutableName).Inc()
 
 					sampleLocationIndices := pd.Dictionary().StackTable().At(int(s.StackIndex())).LocationIndices()
 
@@ -83,10 +98,10 @@ func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
 
 						locationLine := location.Line()
 						if locationLine.Len() == 0 {
-							locationsReceived.WithLabelValues(containerID, frameType).Inc()
+							locationsReceived.WithLabelValues(containerID, processExecutableName, frameType).Inc()
 						}
 
-						locationsReceived.WithLabelValues(containerID, frameType).Add(float64(locationLine.Len()))
+						locationsReceived.WithLabelValues(containerID, processExecutableName, frameType).Add(float64(locationLine.Len()))
 					}
 				}
 			}

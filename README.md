@@ -118,6 +118,20 @@ flowchart LR
    -------------- End Resource Profile ---------------
    ```
 
+## Docker
+
+```
+docker buildx build --platform=linux/amd64 --load \
+  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
+```
+
+```
+docker run --rm  --name lazybackend -p 4137:4137 -p 2112:2112 \
+  docker.io/danielpacak/opentelemetry-lazybackend:latest \
+  -address 0.0.0.0:4137 \
+  -metrics 0.0.0.0:2112
+```
+
 ## Similar Projects
 
 Notice that the OTel Debug Exporter supports profiles, but is pretty useless because it dumps symbol

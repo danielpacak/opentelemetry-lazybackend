@@ -31,6 +31,7 @@ func main() {
 
 func run() error {
 	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4137), "listen address (host:port)")
+	metrics := flag.String("metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "metrics address (host:port)")
 	flag.Parse()
 
 	slog.Info("starting lazy backend server",
@@ -54,9 +55,9 @@ func run() error {
 		//s.GracefulStop()
 	}()
 
-	slog.Info("starting metrics server", "address", "127.0.0.1:2112")
+	slog.Info("starting metrics server", "address", *metrics, "pattern", "/metrics")
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":2112", nil)
+	http.ListenAndServe(*metrics, nil)
 
 	return err
 }

@@ -18,8 +18,47 @@ import (
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 )
 
-// localhost:4317 by default
-// TODO set resource explicitly for logs and metrics
+func TestThreatDetection(t *testing.T) {
+
+	t.Run("Should export process exec events", func(t *testing.T) {
+		grpcLogExporter, err := otlploggrpc.New(t.Context(),
+			otlploggrpc.WithInsecure(),
+			otlploggrpc.WithCompressor(""),
+			otlploggrpc.WithEndpoint("localhost:4317"),
+		)
+		require.NoError(t, err)
+		loggerProvider := logsdk.NewLoggerProvider(
+			logsdk.WithProcessor(logsdk.NewBatchProcessor(grpcLogExporter,
+				logsdk.WithMaxQueueSize(2048),
+				logsdk.WithExportInterval(1*time.Second),
+				logsdk.WithExportTimeout(30*time.Second),
+				logsdk.WithExportMaxBatchSize(512),
+				logsdk.WithExportBufferSize(1),
+			)),
+		)
+		global.SetLoggerProvider(loggerProvider)
+
+		logger := otelslog.NewLogger("xthis is my test app")
+
+		// send some log records
+		logger.Info("exporting dynamic-exec",
+			"type", "dynamic_exec",
+			"resourceName", "dynamic-exec",
+			"resourceData", "_",
+			"containerID", "ba348639d542059482a036379549878e5e2b0aeaa1351ed965515bdc9e343863",
+			"pid", 3606,
+			"ppid", 3579,
+			"binary", "/usr/bin/calico-node",
+		)
+
+		err = loggerProvider.ForceFlush(t.Context())
+		require.NoError(t, err)
+		err = loggerProvider.Shutdown(t.Context())
+		require.NoError(t, err)
+	})
+
+}
+
 func TestLazyBackendExportersGRPC(t *testing.T) {
 
 	t.Run("Should export logs with no compression", func(t *testing.T) {

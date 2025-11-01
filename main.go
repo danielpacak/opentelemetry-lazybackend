@@ -32,6 +32,7 @@ import (
 	"github.com/danielpacak/opentelemetry-lazybackend/collector/receiver/otlpreceiver/errors"
 	"github.com/danielpacak/opentelemetry-lazybackend/collector/statusutil"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver"
+	"github.com/danielpacak/opentelemetry-lazybackend/receiver/postgres"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/prometheus"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/stdout"
 
@@ -40,7 +41,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "error: %s\n", err.Error())
 		os.Exit(1)
 	}
 }
@@ -58,15 +59,26 @@ func run() error {
 		return err
 	}
 
+	postgresReceiver := postgres.NewReceiver(postgres.DefaultConfig())
+	err = postgresReceiver.Init(context.Background())
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = postgresReceiver.Close(context.Background())
+	}()
+
 	receivers := receiver.NewChain(
 		prometheus.NewReceiver(),
-		stdout.NewReceiver(stdout.DefaultConfig()))
+		stdout.NewReceiver(stdout.DefaultConfig()),
+		postgresReceiver,
+	)
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
 	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(receivers))
 	pmetricotlp.RegisterGRPCServer(s, newMetricsServer())
-	plogotlp.RegisterGRPCServer(s, newLogsServer())
+	plogotlp.RegisterGRPCServer(s, newLogsServer(receivers))
 	ptraceotlp.RegisterGRPCServer(s, newTracesServer())
 
 	go func() {
@@ -134,7 +146,7 @@ func newProfilesServer(receiver receiver.Receiver) *profilesServer {
 
 func (f *profilesServer) Export(ctx context.Context, request pprofileotlp.ExportRequest) (pprofileotlp.ExportResponse, error) {
 	slog.Debug("GRPC Handling profiles export request...")
-	err := f.receiver.Receive(ctx, request.Profiles())
+	err := f.receiver.ReceiveProfiles(ctx, request.Profiles())
 	if err != nil {
 		slog.Error("failed to receive profiles")
 	}
@@ -157,28 +169,22 @@ func (m *metricsServer) Export(ctx context.Context, request pmetricotlp.ExportRe
 
 type logsServer struct {
 	plogotlp.UnimplementedGRPCServer
+	receiver receiver.Receiver
 }
 
-func newLogsServer() *logsServer {
-	return &logsServer{}
+func newLogsServer(receiver receiver.Receiver) *logsServer {
+	return &logsServer{
+		receiver: receiver,
+	}
 }
 
 func (l *logsServer) Export(ctx context.Context, request plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {
 	slog.Info("GRPC Handling logs export request...")
-
-	logRecordSlice := request.Logs().ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
-	for i := 0; i < logRecordSlice.Len(); i++ {
-		args := []slog.Attr{
-			slog.String("body", logRecordSlice.At(i).Body().AsString()),
-		}
-
-		logRecordSlice.At(i).Attributes().Range(func(k string, v pcommon.Value) bool {
-			args = append(args, slog.String(k, v.AsString()))
-			return true
-		})
-
-		slog.LogAttrs(ctx, slog.LevelInfo, "Exporting log record", args...)
+	err := l.receiver.ReceiveLogs(ctx, request.Logs())
+	if err != nil {
+		slog.Error("failed to receive logs")
 	}
+
 	return plogotlp.NewExportResponse(), nil
 }
 

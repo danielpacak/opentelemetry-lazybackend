@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pprofile"
 	semconv "go.opentelemetry.io/otel/semconv/v1.22.0"
 )
@@ -34,7 +35,7 @@ func NewReceiver() *Prometheus {
 	return &Prometheus{}
 }
 
-func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
+func (r *Prometheus) ReceiveProfiles(_ context.Context, pd pprofile.Profiles) error {
 	locationTable := pd.Dictionary().LocationTable()
 	attributeTable := pd.Dictionary().AttributeTable()
 	stringTable := pd.Dictionary().StringTable()
@@ -108,5 +109,9 @@ func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
 		}
 	}
 
+	return nil
+}
+
+func (s *Prometheus) ReceiveLogs(_ context.Context, ld plog.Logs) error {
 	return nil
 }

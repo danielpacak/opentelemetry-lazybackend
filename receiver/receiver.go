@@ -3,11 +3,13 @@ package receiver
 import (
 	"context"
 
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pprofile"
 )
 
 type Receiver interface {
-	Receive(ctx context.Context, pd pprofile.Profiles) error
+	ReceiveProfiles(ctx context.Context, pd pprofile.Profiles) error
+	ReceiveLogs(ctx context.Context, ld plog.Logs) error
 }
 
 type Chain struct {
@@ -20,9 +22,16 @@ func NewChain(receivers ...Receiver) *Chain {
 	}
 }
 
-func (r *Chain) Receive(ctx context.Context, pd pprofile.Profiles) error {
+func (r *Chain) ReceiveProfiles(ctx context.Context, pd pprofile.Profiles) error {
 	for _, receiver := range r.receivers {
-		_ = receiver.Receive(ctx, pd)
+		_ = receiver.ReceiveProfiles(ctx, pd)
+	}
+	return nil
+}
+
+func (r *Chain) ReceiveLogs(ctx context.Context, ld plog.Logs) error {
+	for _, receiver := range r.receivers {
+		_ = receiver.ReceiveLogs(ctx, ld)
 	}
 	return nil
 }

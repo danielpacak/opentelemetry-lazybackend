@@ -3,10 +3,12 @@ package stdout
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pprofile"
 )
 
@@ -38,7 +40,7 @@ func NewReceiver(config Config) *Stdout {
 	}
 }
 
-func (s *Stdout) Receive(ctx context.Context, pd pprofile.Profiles) error {
+func (s *Stdout) ReceiveProfiles(ctx context.Context, pd pprofile.Profiles) error {
 	return s.consumeProfiles(ctx, pd)
 }
 
@@ -175,6 +177,24 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 		}
 
 		fmt.Printf("-------------- End Resource Profile ---------------\n\n")
+	}
+	return nil
+}
+
+func (s *Stdout) ReceiveLogs(ctx context.Context, ld plog.Logs) error {
+	// TODO Iteration
+	logRecordSlice := ld.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords()
+	for i := 0; i < logRecordSlice.Len(); i++ {
+		args := []slog.Attr{
+			slog.String("body", logRecordSlice.At(i).Body().AsString()),
+		}
+
+		logRecordSlice.At(i).Attributes().Range(func(k string, v pcommon.Value) bool {
+			args = append(args, slog.String(k, v.AsString()))
+			return true
+		})
+
+		slog.LogAttrs(ctx, slog.LevelInfo, "Exporting log record", args...)
 	}
 	return nil
 }

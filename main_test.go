@@ -148,7 +148,7 @@ func setupGrpcConnection(parent context.Context, cfg *Config) (*grpc.ClientConn,
 // This test is the basic setup as in tutorials
 // https://grpc.io/docs/languages/go/basics/
 func TestMe(t *testing.T) {
-	cc, err := grpc.NewClient("localhost:4137",
+	cc, err := grpc.NewClient("localhost:4317",
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 

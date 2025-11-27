@@ -44,7 +44,7 @@ flowchart LR
    :coffee: :coffee: :coffee:
 
    ``` console
-   $ sudo ./ebpf-profiler -collection-agent="localhost:4137" -disable-tls
+   $ sudo ./ebpf-profiler -collection-agent="localhost:4317" -disable-tls -tracers=all -samples-per-second=19
    INFO[0000] Starting OTEL profiling agent v0.0.0 (revision main-69066441, build timestamp 1758215582) 
    INFO[0000] Interpreter tracers: perl,php,python,hotspot,ruby,v8,dotnet,go,labels 
    INFO[0000] Found offsets: task stack 0x20, pt_regs 0x3f58, tpbase 0x2468 

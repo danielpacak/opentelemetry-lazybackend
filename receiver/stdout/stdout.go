@@ -81,11 +81,10 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 				fmt.Println("------------------- New Profile -------------------")
 				fmt.Printf("  ProfileID: %x\n", [16]byte(profile.ProfileID()))
 				fmt.Printf("  Time: %v\n", profile.Time().AsTime())
-				fmt.Printf("  Duration: %v\n", profile.Duration())
-				fmt.Printf("  PeriodType: [%v, %v, %v]\n",
+				fmt.Printf("  Duration: %v\n", profile.DurationNano())
+				fmt.Printf("  PeriodType: [%v, %v]\n",
 					stringTable.At(int(profile.PeriodType().TypeStrindex())),
-					stringTable.At(int(profile.PeriodType().UnitStrindex())),
-					profile.PeriodType().AggregationTemporality().String())
+					stringTable.At(int(profile.PeriodType().UnitStrindex())))
 				fmt.Printf("  Period: %v\n", profile.Period())
 				fmt.Printf("  Dropped attributes count: %d\n", profile.DroppedAttributesCount())
 
@@ -102,7 +101,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 					fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 				}
 
-				samples := profile.Sample()
+				samples := profile.Samples()
 
 				for l := 0; l < samples.Len(); l++ {
 					sample := samples.At(l)
@@ -147,7 +146,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 								continue
 							}
 
-							locationLine := location.Line()
+							locationLine := location.Lines()
 							if locationLine.Len() == 0 {
 								filename := "<unknown>"
 								if location.MappingIndex() > 0 {

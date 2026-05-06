@@ -61,8 +61,8 @@ func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
 			for pi := 0; pi < sp.Profiles().Len(); pi++ {
 				p := sp.Profiles().At(pi)
 
-				for sampleIdx := 0; sampleIdx < p.Sample().Len(); sampleIdx++ {
-					s := p.Sample().At(sampleIdx)
+				for sampleIdx := 0; sampleIdx < p.Samples().Len(); sampleIdx++ {
+					s := p.Samples().At(sampleIdx)
 
 					processExecutableName := "unknown"
 
@@ -96,7 +96,7 @@ func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {
 							}
 						}
 
-						locationLine := location.Line()
+						locationLine := location.Lines()
 						if locationLine.Len() == 0 {
 							locationsReceived.WithLabelValues(containerID, processExecutableName, frameType).Inc()
 						}

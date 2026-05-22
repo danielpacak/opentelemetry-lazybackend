@@ -1,5 +1,7 @@
 # (WIP) OpenTelemetry Lazy Backend
 
+[![Publish to Docker Hub Container Image Library](https://github.com/danielpacak/opentelemetry-lazybackend/actions/workflows/docker-publish.yaml/badge.svg)](https://github.com/danielpacak/opentelemetry-lazybackend/actions/workflows/docker-publish.yaml)
+
 The OTel Lazy Backend is not supposed to replace OTel Collector and its components, but is useful to
 debug raw OTel signals such as profiles. The main reason it exists is that production-grade backends
 that support profiles are not created equal and many of them loose important details or lag behind
@@ -176,6 +178,11 @@ Instrumentation: native: Function: 0x23dca7, File: libpython3.12.so.1.0
 
 ```
 docker buildx build --platform=linux/amd64 --load \
+  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
+```
+
+```
+docker buildx build --platform=linux/arm64 --load \
   --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
 ```
 

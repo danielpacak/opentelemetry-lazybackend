@@ -32,6 +32,9 @@ type Config struct {
 	// IgnoreProfilesWithoutContainerID skips resource profiles that do not
 	// carry a container.id resource attribute.
 	IgnoreProfilesWithoutContainerID bool
+	// ContainerID, when set, restricts processing to resource profiles whose
+	// container.id matches it; all other profiles are ignored.
+	ContainerID string
 }
 
 func DefaultConfig() Config {
@@ -96,6 +99,11 @@ func (f *Filesystem) consumeProfiles(_ context.Context, pd pprofile.Profiles) er
 		if v, ok := rp.Resource().Attributes().Get(string(semconv.ContainerIDKey)); ok && v.AsString() != "" {
 			containerID = v.AsString()
 		} else if f.config.IgnoreProfilesWithoutContainerID {
+			continue
+		}
+
+		// When a container.id filter is configured, ignore everything else.
+		if f.config.ContainerID != "" && containerID != f.config.ContainerID {
 			continue
 		}
 

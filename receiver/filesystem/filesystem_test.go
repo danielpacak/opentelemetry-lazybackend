@@ -59,6 +59,27 @@ func TestReceiveWritesGroupedStackTraces(t *testing.T) {
 	}
 }
 
+func TestReceiveFiltersByContainerID(t *testing.T) {
+	dir := t.TempDir()
+
+	r := filesystem.NewReceiver(filesystem.Config{Dir: dir, ContainerID: "abc123"})
+
+	pd := newProfiles()
+	// Add a profile for a different container that must be ignored.
+	addProfile(pd, "other", 1 /* samples */)
+
+	if err := r.Receive(context.Background(), pd); err != nil {
+		t.Fatalf("Receive: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, "abc123", "samples", "1.json")); err != nil {
+		t.Fatalf("expected matching container output: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "other")); !os.IsNotExist(err) {
+		t.Fatalf("expected no output for non-matching container, got err=%v", err)
+	}
+}
+
 // newProfiles builds a minimal Profiles with two resource profiles sharing a
 // container id: one CPU "samples" profile and one "events" profile.
 func newProfiles() pprofile.Profiles {

@@ -133,6 +133,7 @@ The backend is configured with the following flags:
 | `-metrics`        | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`).                  |
 | `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
 | `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |
+| `-filesystem.container-id` | _(empty)_ | If set, the `filesystem` receiver only processes profiles with this `container.id`. |
 
 The `-receiver` flag selects which receiver processes incoming profiles. Use
 `stdout` to print profiles to the standard output (the default), `prometheus`
@@ -161,6 +162,13 @@ For example, with `-receiver filesystem -filesystem.dir profiles`:
 ```
 profiles/6d7d5c33.../samples/1.json
 profiles/6d7d5c33.../events/1.json
+```
+
+To capture stack traces from a single pod or container only, pass its
+`container.id` so everything else is ignored:
+
+```
+./opentelemetry-lazybackend -receiver filesystem -filesystem.container-id 6d7d5c33...
 ```
 
 File numbering continues after any files already present, so restarts do not

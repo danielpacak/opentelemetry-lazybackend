@@ -52,6 +52,7 @@ func run() error {
 	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
 	// Receiver-specific options are namespaced as "<receiver>.<option>".
 	filesystemDir := flag.String("filesystem.dir", "profiles", "output directory for the filesystem receiver")
+	filesystemContainerID := flag.String("filesystem.container-id", "", "if set, the filesystem receiver only processes profiles with this container.id")
 	flag.Parse()
 
 	slog.Info("Starting GRPC server",
@@ -71,6 +72,7 @@ func run() error {
 	case "filesystem":
 		config := filesystem.DefaultConfig()
 		config.Dir = *filesystemDir
+		config.ContainerID = *filesystemContainerID
 		profilesReceiver = filesystem.NewReceiver(config)
 	default:
 		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus, filesystem)", *receiverName)

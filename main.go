@@ -48,6 +48,7 @@ func main() {
 func run() error {
 	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4317), "listen address (host:port)")
 	metrics := flag.String("metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "metrics address (host:port)")
+	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus)")
 	flag.Parse()
 
 	slog.Info("Starting GRPC server",
@@ -58,13 +59,20 @@ func run() error {
 		return err
 	}
 
-	receivers := receiver.NewChain(
-		prometheus.NewReceiver(),
-		stdout.NewReceiver(stdout.DefaultConfig()))
+	var profilesReceiver receiver.Receiver
+	switch *receiverName {
+	case "stdout":
+		profilesReceiver = stdout.NewReceiver(stdout.DefaultConfig())
+	case "prometheus":
+		profilesReceiver = prometheus.NewReceiver()
+	default:
+		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus)", *receiverName)
+	}
+	slog.Info("Using profiles receiver", "receiver", *receiverName)
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
-	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(receivers))
+	pprofileotlp.RegisterGRPCServer(s, newProfilesServer(profilesReceiver))
 	pmetricotlp.RegisterGRPCServer(s, newMetricsServer())
 	plogotlp.RegisterGRPCServer(s, newLogsServer())
 	ptraceotlp.RegisterGRPCServer(s, newTracesServer())

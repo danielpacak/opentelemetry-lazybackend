@@ -120,6 +120,24 @@ flowchart LR
    -------------- End Resource Profile ---------------
    ```
 
+## Command-Line Flags
+
+The backend is configured with the following flags:
+
+| Flag        | Default          | Description                                            |
+|-------------|------------------|--------------------------------------------------------|
+| `-address`  | `127.0.0.1:4317` | gRPC listen address (`host:port`).                     |
+| `-metrics`  | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`).       |
+| `-receiver` | `stdout`         | Profiles receiver to use: `stdout` or `prometheus`.    |
+
+The `-receiver` flag selects which receiver processes incoming profiles. Use
+`stdout` to print profiles to the standard output (the default), or `prometheus`
+to expose aggregated stats on the metrics endpoint:
+
+```
+./opentelemetry-lazybackend -receiver prometheus
+```
+
 ## Attach Profiler to Custom Hooks
 
 It's possible to receive event-based stack traces collected by the profiler,

@@ -32,6 +32,7 @@ import (
 	"github.com/danielpacak/opentelemetry-lazybackend/collector/receiver/otlpreceiver/errors"
 	"github.com/danielpacak/opentelemetry-lazybackend/collector/statusutil"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver"
+	"github.com/danielpacak/opentelemetry-lazybackend/receiver/filesystem"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/prometheus"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/stdout"
 
@@ -48,7 +49,9 @@ func main() {
 func run() error {
 	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4317), "listen address (host:port)")
 	metrics := flag.String("metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "metrics address (host:port)")
-	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus)")
+	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
+	// Receiver-specific options are namespaced as "<receiver>.<option>".
+	filesystemDir := flag.String("filesystem.dir", "profiles", "output directory for the filesystem receiver")
 	flag.Parse()
 
 	slog.Info("Starting GRPC server",
@@ -65,8 +68,12 @@ func run() error {
 		profilesReceiver = stdout.NewReceiver(stdout.DefaultConfig())
 	case "prometheus":
 		profilesReceiver = prometheus.NewReceiver()
+	case "filesystem":
+		config := filesystem.DefaultConfig()
+		config.Dir = *filesystemDir
+		profilesReceiver = filesystem.NewReceiver(config)
 	default:
-		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus)", *receiverName)
+		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus, filesystem)", *receiverName)
 	}
 	slog.Info("Using profiles receiver", "receiver", *receiverName)
 

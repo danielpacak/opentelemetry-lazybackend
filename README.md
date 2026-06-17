@@ -13,6 +13,7 @@ flowchart LR
   opentelemetry-lazybackend
   clickhouse@{ shape: cyl, label: "ClickHouse" }
   sqlite@{ shape: cyl, label: "SQLite" }
+  filesystem@{ shape: cyl, label: "Filesystem" }
   stdout["Stdout"]
   prometheus@{ shape: cyl, label: "Prometheus" }
 
@@ -21,12 +22,14 @@ flowchart LR
   opentelemetry-lazybackend e3@--> sqlite
   opentelemetry-lazybackend e4@--> stdout
   opentelemetry-lazybackend e5@--> prometheus
+  opentelemetry-lazybackend e6@--> filesystem
 
   e1@{ animate: true }
   e2@{ animate: true }
   e3@{ animate: true }
   e4@{ animate: true }
   e5@{ animate: true }
+  e6@{ animate: true }
 ```
 
 ## Quickstart Guide
@@ -124,18 +127,60 @@ flowchart LR
 
 The backend is configured with the following flags:
 
-| Flag        | Default          | Description                                            |
-|-------------|------------------|--------------------------------------------------------|
-| `-address`  | `127.0.0.1:4317` | gRPC listen address (`host:port`).                     |
-| `-metrics`  | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`).       |
-| `-receiver` | `stdout`         | Profiles receiver to use: `stdout` or `prometheus`.    |
+| Flag              | Default          | Description                                                       |
+|-------------------|------------------|-------------------------------------------------------------------|
+| `-address`        | `127.0.0.1:4317` | gRPC listen address (`host:port`).                                |
+| `-metrics`        | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`).                  |
+| `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
+| `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |
 
 The `-receiver` flag selects which receiver processes incoming profiles. Use
-`stdout` to print profiles to the standard output (the default), or `prometheus`
-to expose aggregated stats on the metrics endpoint:
+`stdout` to print profiles to the standard output (the default), `prometheus`
+to expose aggregated stats on the metrics endpoint, or `filesystem` to persist
+profiles to disk:
 
 ```
 ./opentelemetry-lazybackend -receiver prometheus
+```
+
+Receiver-specific options are namespaced as `-<receiver>.<option>` (e.g.
+`-filesystem.dir`) so they are only meaningful for the matching receiver.
+
+## Filesystem Receiver
+
+The filesystem receiver writes each received stack trace as a JSON file, grouped
+by `container.id` and separated by sample type (CPU `samples` vs event-based
+`events`):
+
+```
+<filesystem.dir>/<container.id>/<sample-type>/<n>.json
+```
+
+For example, with `-receiver filesystem -filesystem.dir profiles`:
+
+```
+profiles/6d7d5c33.../samples/1.json
+profiles/6d7d5c33.../events/1.json
+```
+
+File numbering continues after any files already present, so restarts do not
+overwrite earlier output. Each JSON file represents a single stack trace with
+its timestamps, attributes, and frames:
+
+``` json
+{
+  "container_id": "6d7d5c33...",
+  "profile_id": "00000000000000000000000000000000",
+  "sample_type": "samples",
+  "timestamps_unix_nano": [1758603335517877230],
+  "attributes": {
+    "thread.name": "etcd",
+    "process.executable.name": "etcd"
+  },
+  "frames": [
+    { "type": "kernel", "function": "do_syscall_64", "file": "sys.c", "line": 42 }
+  ]
+}
 ```
 
 ## Attach Profiler to Custom Hooks

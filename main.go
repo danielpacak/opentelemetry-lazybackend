@@ -69,18 +69,22 @@ func run() error {
 	var profilesReceiver receiver.Receiver
 	switch *receiverName {
 	case "stdout":
-		profilesReceiver = stdout.NewReceiver(stdout.DefaultConfig())
+		cfg := stdout.DefaultConfig()
+		profilesReceiver = stdout.NewReceiver(cfg)
+		slog.Info("Using profiles receiver", "receiver", *receiverName, "config", cfg)
 	case "prometheus":
-		profilesReceiver = prometheus.NewReceiver(prometheus.Config{MetricsAddr: *prometheusMetrics})
+		cfg := prometheus.Config{MetricsAddr: *prometheusMetrics}
+		profilesReceiver = prometheus.NewReceiver(cfg)
+		slog.Info("Using profiles receiver", "receiver", *receiverName, "config", cfg)
 	case "filesystem":
-		config := filesystem.DefaultConfig()
-		config.Dir = *filesystemDir
-		config.ContainerID = *filesystemContainerID
-		profilesReceiver = filesystem.NewReceiver(config)
+		cfg := filesystem.DefaultConfig()
+		cfg.Dir = *filesystemDir
+		cfg.ContainerID = *filesystemContainerID
+		profilesReceiver = filesystem.NewReceiver(cfg)
+		slog.Info("Using profiles receiver", "receiver", *receiverName, "config", cfg)
 	default:
 		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus, filesystem)", *receiverName)
 	}
-	slog.Info("Using profiles receiver", "receiver", *receiverName)
 	if err := profilesReceiver.Start(ctx); err != nil {
 		return err
 	}

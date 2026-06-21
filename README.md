@@ -75,7 +75,8 @@ Or pull and run the pre-built image from Docker Hub:
 docker run --rm --name lazybackend -p 4317:4317 -p 2112:2112 \
   docker.io/danielpacak/opentelemetry-lazybackend:latest \
   -address 0.0.0.0:4317 \
-  -metrics 0.0.0.0:2112
+  -receiver prometheus \
+  -prometheus.metrics 0.0.0.0:2112
 ```
 
 ## Quickstart Guide
@@ -210,8 +211,8 @@ The backend is configured with the following flags:
 | Flag              | Default          | Description                                                       |
 |-------------------|------------------|-------------------------------------------------------------------|
 | `-address`        | `127.0.0.1:4317` | gRPC listen address (`host:port`).                                |
-| `-metrics`        | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`).                  |
 | `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
+| `-prometheus.metrics` | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`). Only used with `-receiver prometheus`. |
 | `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |
 | `-filesystem.container-id` | _(empty)_ | If set, the `filesystem` receiver only processes profiles with this `container.id`. |
 
@@ -225,7 +226,8 @@ profiles to disk:
 ```
 
 Receiver-specific options are namespaced as `-<receiver>.<option>` (e.g.
-`-filesystem.dir`) so they are only meaningful for the matching receiver.
+`-prometheus.metrics`, `-filesystem.dir`) so they are only meaningful for the
+matching receiver.
 
 ## Receivers
 

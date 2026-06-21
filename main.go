@@ -48,9 +48,9 @@ func main() {
 
 func run() error {
 	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4317), "listen address (host:port)")
-	metrics := flag.String("metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "metrics address (host:port)")
 	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
 	// Receiver-specific options are namespaced as "<receiver>.<option>".
+	prometheusMetrics := flag.String("prometheus.metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "Prometheus metrics listen address (host:port)")
 	filesystemDir := flag.String("filesystem.dir", "profiles", "output directory for the filesystem receiver")
 	filesystemContainerID := flag.String("filesystem.container-id", "", "if set, the filesystem receiver only processes profiles with this container.id")
 	flag.Parse()
@@ -69,6 +69,12 @@ func run() error {
 		profilesReceiver = stdout.NewReceiver(stdout.DefaultConfig())
 	case "prometheus":
 		profilesReceiver = prometheus.NewReceiver()
+		metricsAddr := *prometheusMetrics
+		go func() {
+			slog.Info("Starting metrics server", "endpoint", metricsAddr, "pattern", "/metrics")
+			http.Handle("/metrics", promhttp.Handler())
+			http.ListenAndServe(metricsAddr, nil)
+		}()
 	case "filesystem":
 		config := filesystem.DefaultConfig()
 		config.Dir = *filesystemDir
@@ -130,12 +136,7 @@ func run() error {
 		serverHTTP.Serve(listener)
 	}()
 
-	// meeeeetrics
-	slog.Info("Starting metrics server", "endpoint", *metrics, "pattern", "/metrics")
-	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(*metrics, nil)
-
-	return err
+	select {}
 }
 
 type profilesServer struct {

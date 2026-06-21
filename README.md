@@ -158,6 +158,51 @@ docker run --rm --name lazybackend -p 4317:4317 -p 2112:2112 \
    INFO[0000] Attached sched monitor                       
    ```
 
+3. Optionally, to capture event-based stack traces from a custom kernel or user-space hook, the
+   profiler can load a generic eBPF program and attach it to any kprobe or uprobe. For example, to
+   trace every `copy_process` call:
+
+   ```console
+   $ sudo ./ebpf-profiler -collection-agent="localhost:4317" -disable-tls -tracers=all \
+     -load-probe \
+     -probe-link=kprobe:copy_process
+   ```
+
+   The Lazy Backend will receive `events`-typed profiles instead of the usual `samples`:
+
+   ``` console
+   $ ./opentelemetry-lazybackend
+   --skip--
+   ------------------- New Profile -------------------
+     ProfileID: 00000000000000000000000000000000
+     Time: 2026-05-06 11:35:25.372004042 +0000 UTC
+     Duration: 4790449180
+     PeriodType: [, ]
+     Period: 0
+     Dropped attributes count: 0
+     SampleType: events
+   ------------------- New Sample --------------------
+     Timestamp[0]: 1778067329629468959 (2026-05-06 13:35:29.629468959 +0200 CEST)
+     thread.name: langflow
+     thread.id: 91228
+     cpu.logical_number: 5
+   ---------------------------------------------------
+   Instrumentation: kernel, Function: copy_process, File: , Line: 0, Column: 0
+   Instrumentation: kernel, Function: __x64_sys_vfork, File: , Line: 0, Column: 0
+   Instrumentation: kernel, Function: x64_sys_call, File: , Line: 0, Column: 0
+   Instrumentation: kernel, Function: do_syscall_64, File: , Line: 0, Column: 0
+   Instrumentation: kernel, Function: entry_SYSCALL_64_after_hwframe, File: , Line: 0, Column: 0
+   Instrumentation: native: Function: 0xd4377, File: libc.so.6
+   Instrumentation: native: Function: 0x2c91, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
+   Instrumentation: native: Function: 0x34a3, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
+   Instrumentation: native: Function: 0x38d7, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
+   Instrumentation: cpython, Function: Popen._execute_child, File: /usr/local/lib/python3.12/subprocess.py, Line: 1884, Column: 0
+   Instrumentation: cpython, Function: Popen.__init__, File: /usr/local/lib/python3.12/subprocess.py, Line: 1026, Column: 0
+   Instrumentation: cpython, Function: <interpreter trampoline>, File: <shim>, Line: 1, Column: 0
+   Instrumentation: native: Function: 0x23dca7, File: libpython3.12.so.1.0
+   --skip--
+   ```
+
 ## Command-Line Flags
 
 The backend is configured with the following flags:
@@ -224,60 +269,6 @@ its timestamps, attributes, and frames:
     { "type": "kernel", "function": "do_syscall_64", "file": "sys.c", "line": 42 }
   ]
 }
-```
-
-## Attach Profiler to Custom Hooks
-
-It's possible to receive event-based stack traces collected by the profiler,
-which might be instructed to load a generic eBPF program. The generic eBPF
-program can be in turn attached to custom user or kernel space hooks.
-
-Run the Lazy Backend as usual.
-
-```
-./opentelemetry-lazybackend
-```
-
-In another terminal session run the profiler with a generic eBPF program loaded
-and attached to the `copy_process` kprobe.
-
-```
-sudo ./ebpf-profiler -collection-agent="localhost:4317" -disable-tls -tracers=all \
-  -load-probe \
-  -probe-link=kprobe:copy_process
-```
-
-``` console
-$ ./opentelemetry-lazybackend
---skip--
-------------------- New Profile -------------------
-  ProfileID: 00000000000000000000000000000000
-  Time: 2026-05-06 11:35:25.372004042 +0000 UTC
-  Duration: 4790449180
-  PeriodType: [, ]
-  Period: 0
-  Dropped attributes count: 0
-  SampleType: events
-------------------- New Sample --------------------
-  Timestamp[0]: 1778067329629468959 (2026-05-06 13:35:29.629468959 +0200 CEST)
-  thread.name: langflow
-  thread.id: 91228
-  cpu.logical_number: 5
----------------------------------------------------
-Instrumentation: kernel, Function: copy_process, File: , Line: 0, Column: 0
-Instrumentation: kernel, Function: __x64_sys_vfork, File: , Line: 0, Column: 0
-Instrumentation: kernel, Function: x64_sys_call, File: , Line: 0, Column: 0
-Instrumentation: kernel, Function: do_syscall_64, File: , Line: 0, Column: 0
-Instrumentation: kernel, Function: entry_SYSCALL_64_after_hwframe, File: , Line: 0, Column: 0
-Instrumentation: native: Function: 0xd4377, File: libc.so.6
-Instrumentation: native: Function: 0x2c91, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
-Instrumentation: native: Function: 0x34a3, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
-Instrumentation: native: Function: 0x38d7, File: _posixsubprocess.cpython-312-x86_64-linux-gnu.so
-Instrumentation: cpython, Function: Popen._execute_child, File: /usr/local/lib/python3.12/subprocess.py, Line: 1884, Column: 0
-Instrumentation: cpython, Function: Popen.__init__, File: /usr/local/lib/python3.12/subprocess.py, Line: 1026, Column: 0
-Instrumentation: cpython, Function: <interpreter trampoline>, File: <shim>, Line: 1, Column: 0
-Instrumentation: native: Function: 0x23dca7, File: libpython3.12.so.1.0
---skip--
 ```
 
 ## Prometheus Receiver

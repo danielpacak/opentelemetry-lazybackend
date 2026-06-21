@@ -210,7 +210,7 @@ The backend is configured with the following flags:
 
 | Flag              | Default          | Description                                                       |
 |-------------------|------------------|-------------------------------------------------------------------|
-| `-address`        | `127.0.0.1:4317` | gRPC listen address (`host:port`).                                |
+| `-address`        | `0.0.0.0:4317`   | gRPC listen address (`host:port`).                                |
 | `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
 | `-prometheus.metrics` | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`). Only used with `-receiver prometheus`. |
 | `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |

@@ -9,10 +9,11 @@ services:
     image: docker.io/danielpacak/opentelemetry-lazybackend:latest
     container_name: lazybackend
     command:
-      - "--address=0.0.0.0:4137"
-      - "--metrics=0.0.0.0:2112"
+      - "--address=0.0.0.0:4317"
+      - "--receiver=prometheus"
+      - "--prometheus.metrics=0.0.0.0:2112"
     ports:
-      - "4137:4137"
+      - "4317:4317"
       - "2112:2112"
     networks:
       - monitoring

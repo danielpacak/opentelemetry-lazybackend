@@ -1,3 +1,5 @@
+//go:build integration
+
 package main
 
 import (
@@ -59,7 +61,7 @@ type Config struct {
 
 func TestMyProfiler(t *testing.T) {
 	cfg := &Config{
-		CollAgentAddr:          "localhost:4137",
+		CollAgentAddr:          "127.0.0.1:4317",
 		DisableTLS:             true,
 		GRPCStartupBackoffTime: 1 * time.Minute,
 		MaxGRPCRetries:         5,
@@ -119,7 +121,6 @@ func waitGrpcEndpoint(ctx context.Context, cfg *Config) (*grpc.ClientConn, error
 func setupGrpcConnection(parent context.Context, cfg *Config) (*grpc.ClientConn, error) {
 	//nolint:staticcheck
 	opts := []grpc.DialOption{grpc.WithBlock(),
-		grpc.WithUnaryInterceptor(cfg.GRPCClientInterceptor),
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(cfg.MaxRPCMsgSize),
 			grpc.MaxCallSendMsgSize(cfg.MaxRPCMsgSize)),
@@ -148,7 +149,7 @@ func setupGrpcConnection(parent context.Context, cfg *Config) (*grpc.ClientConn,
 // This test is the basic setup as in tutorials
 // https://grpc.io/docs/languages/go/basics/
 func TestMe(t *testing.T) {
-	cc, err := grpc.NewClient("localhost:4317",
+	cc, err := grpc.NewClient("127.0.0.1:4317",
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 

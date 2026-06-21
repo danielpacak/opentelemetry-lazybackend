@@ -1,3 +1,5 @@
+//go:build integration
+
 package main_test
 
 import (
@@ -18,7 +20,7 @@ import (
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 )
 
-// localhost:4317 by default
+// 127.0.0.1:4317 by default
 // TODO set resource explicitly for logs and metrics
 func TestLazyBackendExportersGRPC(t *testing.T) {
 
@@ -26,7 +28,7 @@ func TestLazyBackendExportersGRPC(t *testing.T) {
 		grpcLogExporter, err := otlploggrpc.New(t.Context(),
 			otlploggrpc.WithInsecure(),
 			otlploggrpc.WithCompressor(""),
-			otlploggrpc.WithEndpoint("localhost:4317"),
+			otlploggrpc.WithEndpoint("127.0.0.1:4317"),
 		)
 		require.NoError(t, err)
 		loggerProvider := logsdk.NewLoggerProvider(
@@ -57,7 +59,7 @@ func TestLazyBackendExportersGRPC(t *testing.T) {
 		grpcLogExporter, err := otlploggrpc.New(t.Context(),
 			otlploggrpc.WithInsecure(),
 			otlploggrpc.WithCompressor("gzip"),
-			otlploggrpc.WithEndpoint("localhost:4317"),
+			otlploggrpc.WithEndpoint("127.0.0.1:4317"),
 		)
 		require.NoError(t, err)
 		loggerProvider := logsdk.NewLoggerProvider(
@@ -87,7 +89,7 @@ func TestLazyBackendExportersGRPC(t *testing.T) {
 	t.Run("Should export metrics", func(t *testing.T) {
 		grpcMetricExporter, err := otlpmetricgrpc.New(t.Context(),
 			otlpmetricgrpc.WithInsecure(),
-			otlpmetricgrpc.WithEndpoint("localhost:4317"),
+			otlpmetricgrpc.WithEndpoint("127.0.0.1:4317"),
 		)
 		require.NoError(t, err)
 
@@ -126,7 +128,7 @@ func TestLazyBackendExportersHTTP(t *testing.T) {
 		httpLogExporter, err := otlploghttp.New(t.Context(),
 			otlploghttp.WithInsecure(),
 			otlploghttp.WithCompression(otlploghttp.NoCompression),
-			otlploghttp.WithEndpoint("localhost:4318"),
+			otlploghttp.WithEndpoint("127.0.0.1:4318"),
 		)
 		require.NoError(t, err)
 		loggerProvider := logsdk.NewLoggerProvider(
@@ -154,7 +156,7 @@ func TestLazyBackendExportersHTTP(t *testing.T) {
 		httpLogExporter, err := otlploghttp.New(t.Context(),
 			otlploghttp.WithInsecure(),
 			otlploghttp.WithCompression(otlploghttp.GzipCompression),
-			otlploghttp.WithEndpoint("localhost:4318"),
+			otlploghttp.WithEndpoint("127.0.0.1:4318"),
 		)
 		require.NoError(t, err)
 		loggerProvider := logsdk.NewLoggerProvider(
@@ -182,7 +184,7 @@ func TestLazyBackendExportersHTTP(t *testing.T) {
 		httpMetricExporter, err := otlpmetrichttp.New(t.Context(),
 			otlpmetrichttp.WithInsecure(),
 			otlpmetrichttp.WithCompression(otlpmetrichttp.NoCompression),
-			otlpmetrichttp.WithEndpoint("localhost:4318"),
+			otlpmetrichttp.WithEndpoint("127.0.0.1:4318"),
 		)
 		require.NoError(t, err)
 
@@ -208,7 +210,7 @@ func TestLazyBackendExportersHTTP(t *testing.T) {
 		httpMetricExporter, err := otlpmetrichttp.New(t.Context(),
 			otlpmetrichttp.WithInsecure(),
 			otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
-			otlpmetrichttp.WithEndpoint("localhost:4318"),
+			otlpmetrichttp.WithEndpoint("127.0.0.1:4318"),
 		)
 		require.NoError(t, err)
 

@@ -52,6 +52,12 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 	attributeTable := pd.Dictionary().AttributeTable()
 	functionTable := pd.Dictionary().FunctionTable()
 	stringTable := pd.Dictionary().StringTable()
+	getString := func(idx int32) string {
+		if n := int(idx); n < stringTable.Len() {
+			return stringTable.At(n)
+		}
+		return ""
+	}
 	rps := pd.ResourceProfiles()
 	for i := 0; i < rps.Len(); i++ {
 		rp := rps.At(i)
@@ -87,20 +93,20 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 				fmt.Printf("  Time: %v\n", profile.Time().AsTime())
 				fmt.Printf("  Duration: %v\n", profile.DurationNano())
 				fmt.Printf("  PeriodType: [%v, %v]\n",
-					stringTable.At(int(profile.PeriodType().TypeStrindex())),
-					stringTable.At(int(profile.PeriodType().UnitStrindex())))
+					getString(profile.PeriodType().TypeStrindex()),
+					getString(profile.PeriodType().UnitStrindex()))
 				fmt.Printf("  Period: %v\n", profile.Period())
 				fmt.Printf("  Dropped attributes count: %d\n", profile.DroppedAttributesCount())
 
 				sampleType := "samples"
-				sampleType = stringTable.At(int(profile.SampleType().TypeStrindex()))
+				sampleType = getString(profile.SampleType().TypeStrindex())
 				fmt.Printf("  SampleType: %s\n", sampleType)
 
 				profileAttrs := profile.AttributeIndices()
 				if profileAttrs.Len() > 0 {
 					for n := 0; n < profileAttrs.Len(); n++ {
 						attr := attributeTable.At(int(profileAttrs.At(n)))
-						fmt.Printf("  %s: %s\n", stringTable.At(int(attr.KeyStrindex())), attr.Value().AsString())
+						fmt.Printf("  %s: %s\n", getString(attr.KeyStrindex()), attr.Value().AsString())
 					}
 					fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 				}
@@ -124,7 +130,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 						sampleAttrs := sample.AttributeIndices()
 						for n := 0; n < sampleAttrs.Len(); n++ {
 							attr := attributeTable.At(int(sampleAttrs.At(n)))
-							fmt.Printf("  %s: %s\n", stringTable.At(int(attr.KeyStrindex())), attr.Value().AsString())
+							fmt.Printf("  %s: %s\n", getString(attr.KeyStrindex()), attr.Value().AsString())
 						}
 						fmt.Println("---------------------------------------------------")
 					}
@@ -139,7 +145,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 							unwindType := "unknown"
 							for la := 0; la < locationAttrs.Len(); la++ {
 								attr := attributeTable.At(int(locationAttrs.At(la)))
-								if stringTable.At(int(attr.KeyStrindex())) == "profile.frame.type" {
+								if getString(attr.KeyStrindex()) == "profile.frame.type" {
 									unwindType = attr.Value().AsString()
 									break
 								}
@@ -155,7 +161,7 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 								filename := "<unknown>"
 								if location.MappingIndex() > 0 {
 									mapping := mappingTable.At(int(location.MappingIndex()))
-									filename = stringTable.At(int(mapping.FilenameStrindex()))
+									filename = getString(mapping.FilenameStrindex())
 								}
 								fmt.Printf("Instrumentation: %s: Function: %#04x, File: %s\n", unwindType, location.Address(), filename)
 							}
@@ -163,8 +169,8 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 							for n := 0; n < locationLine.Len(); n++ {
 								line := locationLine.At(n)
 								function := functionTable.At(int(line.FunctionIndex()))
-								functionName := stringTable.At(int(function.NameStrindex()))
-								fileName := stringTable.At(int(function.FilenameStrindex()))
+								functionName := getString(function.NameStrindex())
+								fileName := getString(function.FilenameStrindex())
 								fmt.Printf("Instrumentation: %s, Function: %s, File: %s, Line: %d, Column: %d\n",
 									unwindType, functionName, fileName, line.Line(), line.Column())
 							}

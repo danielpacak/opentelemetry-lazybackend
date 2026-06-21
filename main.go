@@ -47,7 +47,7 @@ func main() {
 }
 
 func run() error {
-	address := flag.String("address", fmt.Sprintf("127.0.0.1:%d", 4317), "listen address (host:port)")
+	address := flag.String("address", fmt.Sprintf("0.0.0.0:%d", 4317), "listen address (host:port)")
 	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
 	// Receiver-specific options are namespaced as "<receiver>.<option>".
 	prometheusMetrics := flag.String("prometheus.metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "Prometheus metrics listen address (host:port)")
@@ -136,11 +136,11 @@ func run() error {
 		//IdleTimeout:       sc.IdleTimeout,
 		ErrorLog: slog.NewLogLogger(slog.NewTextHandler(os.Stderr, nil), slog.LevelError),
 	}
-	listener, err := net.Listen("tcp", "127.0.0.1:4318")
+	listener, err := net.Listen("tcp", "0.0.0.0:4318")
 	if err != nil {
 		return err
 	}
-	slog.Info("Starting HTTP server", slog.String("endpoint", "127.0.0.1:4318"))
+	slog.Info("Starting HTTP server", slog.String("endpoint", "0.0.0.0:4318"))
 	go func() {
 		serverHTTP.Serve(listener)
 	}()

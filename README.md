@@ -11,25 +11,19 @@ the latest profiles definition.
 flowchart LR
   opentelemetry-ebpf-profiler
   opentelemetry-lazybackend
-  clickhouse@{ shape: cyl, label: "ClickHouse" }
-  sqlite@{ shape: cyl, label: "SQLite" }
   filesystem@{ shape: cyl, label: "Filesystem" }
   stdout["Stdout"]
   prometheus@{ shape: cyl, label: "Prometheus" }
 
   opentelemetry-ebpf-profiler e1@--> opentelemetry-lazybackend
-  opentelemetry-lazybackend e2@--> clickhouse
-  opentelemetry-lazybackend e3@--> sqlite
-  opentelemetry-lazybackend e4@--> stdout
-  opentelemetry-lazybackend e5@--> prometheus
-  opentelemetry-lazybackend e6@--> filesystem
+  opentelemetry-lazybackend e2@--> stdout
+  opentelemetry-lazybackend e3@--> prometheus
+  opentelemetry-lazybackend e4@--> filesystem
 
   e1@{ animate: true }
   e2@{ animate: true }
   e3@{ animate: true }
   e4@{ animate: true }
-  e5@{ animate: true }
-  e6@{ animate: true }
 ```
 
 ## Quickstart Guide

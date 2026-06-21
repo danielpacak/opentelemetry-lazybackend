@@ -26,45 +26,63 @@ flowchart LR
   e4@{ animate: true }
 ```
 
+## Installation
+
+### Build from Source
+
+If you have Go installed, clone the repository and build the binary:
+
+```console
+git clone https://github.com/danielpacak/opentelemetry-lazybackend.git
+cd opentelemetry-lazybackend
+go build -o opentelemetry-lazybackend .
+```
+
+The resulting `opentelemetry-lazybackend` binary will be in the current directory.
+
+### Install with `go install`
+
+If you have Go installed, you can install the latest version directly:
+
+```console
+go install github.com/danielpacak/opentelemetry-lazybackend@latest
+```
+
+The binary is placed in `$GOPATH/bin` (typically `~/go/bin`). Make sure that
+directory is on your `PATH`:
+
+```console
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
+### Run with Docker
+
+Build a local image for your platform:
+
+```console
+docker buildx build --platform=linux/amd64 --load \
+  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
+```
+
+```console
+docker buildx build --platform=linux/arm64 --load \
+  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
+```
+
+Or pull and run the pre-built image from Docker Hub:
+
+```console
+docker run --rm --name lazybackend -p 4317:4317 -p 2112:2112 \
+  docker.io/danielpacak/opentelemetry-lazybackend:latest \
+  -address 0.0.0.0:4317 \
+  -metrics 0.0.0.0:2112
+```
+
 ## Quickstart Guide
 
-1. Start by generating OTel profiles. One way to do that is to run the OTel eBPF profiler. Since it
-   has not officially been released yet, I'm usually building it from sources and running as follows.
-
-   ```
-   git clone git@github.com:open-telemetry/opentelemetry-ebpf-profiler.git
-   cd opentelemetry-ebpf-profiler
-   ```
-
-   ```
-   make agent
-   ```
-
-   :coffee: :coffee: :coffee:
-
-   ``` console
-   $ sudo ./ebpf-profiler -collection-agent="localhost:4317" -disable-tls -tracers=all -samples-per-second=19
-   INFO[0000] Starting OTEL profiling agent v0.0.0 (revision main-69066441, build timestamp 1758215582) 
-   INFO[0000] Interpreter tracers: perl,php,python,hotspot,ruby,v8,dotnet,go,labels 
-   INFO[0000] Found offsets: task stack 0x20, pt_regs 0x3f58, tpbase 0x2468 
-   INFO[0000] Supports generic eBPF map batch operations   
-   INFO[0000] Supports LPM trie eBPF map batch operations  
-   INFO[0000] eBPF tracer loaded                           
-   INFO[0000] Attached tracer program                      
-   INFO[0000] Attached sched monitor                       
-   ```
-
-2. Start the OTel Lazy Backend with the default config to receive profiles and print them to the
-   standard output.
-
-   ```
-   git@github.com:danielpacak/opentelemetry-lazybackend.git
-   cd opentelemetry-lazybackend
-   ```
-
-   ```
-   go build
-   ```
+1. Install the OTel Lazy Backend using one of the methods from the [Installation](#installation)
+   section, then start it with the default config to receive profiles and print them to the standard
+   output.
 
    ``` console
    $ ./opentelemetry-lazybackend
@@ -115,6 +133,29 @@ flowchart LR
    ------------------- End Sample --------------------
    ------------------- End Profile -------------------
    -------------- End Resource Profile ---------------
+   ```
+
+2. In a separate terminal, generate OTel profiles by running the OTel eBPF profiler. Since it has
+   not officially been released yet, build it from sources:
+
+   ```console
+   git clone git@github.com:open-telemetry/opentelemetry-ebpf-profiler.git
+   cd opentelemetry-ebpf-profiler
+   make agent
+   ```
+
+   :coffee: :coffee: :coffee:
+
+   ```console
+   $ sudo ./ebpf-profiler -collection-agent="localhost:4317" -disable-tls -tracers=all -samples-per-second=19
+   INFO[0000] Starting OTEL profiling agent v0.0.0 (revision main-69066441, build timestamp 1758215582) 
+   INFO[0000] Interpreter tracers: perl,php,python,hotspot,ruby,v8,dotnet,go,labels 
+   INFO[0000] Found offsets: task stack 0x20, pt_regs 0x3f58, tpbase 0x2468 
+   INFO[0000] Supports generic eBPF map batch operations   
+   INFO[0000] Supports LPM trie eBPF map batch operations  
+   INFO[0000] eBPF tracer loaded                           
+   INFO[0000] Attached tracer program                      
+   INFO[0000] Attached sched monitor                       
    ```
 
 ## Command-Line Flags
@@ -237,25 +278,6 @@ Instrumentation: cpython, Function: Popen.__init__, File: /usr/local/lib/python3
 Instrumentation: cpython, Function: <interpreter trampoline>, File: <shim>, Line: 1, Column: 0
 Instrumentation: native: Function: 0x23dca7, File: libpython3.12.so.1.0
 --skip--
-```
-
-## Docker
-
-```
-docker buildx build --platform=linux/amd64 --load \
-  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
-```
-
-```
-docker buildx build --platform=linux/arm64 --load \
-  --tag docker.io/danielpacak/opentelemetry-lazybackend:latest .
-```
-
-```
-docker run --rm  --name lazybackend -p 4137:4137 -p 2112:2112 \
-  docker.io/danielpacak/opentelemetry-lazybackend:latest \
-  -address 0.0.0.0:4137 \
-  -metrics 0.0.0.0:2112
 ```
 
 ## Prometheus Receiver

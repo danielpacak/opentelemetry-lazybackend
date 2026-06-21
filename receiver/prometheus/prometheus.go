@@ -2,13 +2,24 @@ package prometheus
 
 import (
 	"context"
+	"log/slog"
+	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pprofile"
 	semconv "go.opentelemetry.io/otel/semconv/v1.22.0"
 )
+
+type Config struct {
+	MetricsAddr string
+}
+
+func DefaultConfig() Config {
+	return Config{MetricsAddr: "127.0.0.1:2112"}
+}
 
 // https://www.cncf.io/blog/2025/07/22/prometheus-labels-understanding-and-best-practices/
 
@@ -28,10 +39,32 @@ var (
 )
 
 type Prometheus struct {
+	config Config
+	server *http.Server
 }
 
-func NewReceiver() *Prometheus {
-	return &Prometheus{}
+func NewReceiver(config Config) *Prometheus {
+	return &Prometheus{config: config}
+}
+
+func (r *Prometheus) Start(_ context.Context) error {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	r.server = &http.Server{Addr: r.config.MetricsAddr, Handler: mux}
+	go func() {
+		slog.Info("Starting metrics server", "endpoint", r.config.MetricsAddr, "pattern", "/metrics")
+		if err := r.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("metrics server error", "err", err)
+		}
+	}()
+	return nil
+}
+
+func (r *Prometheus) Stop(ctx context.Context) error {
+	if r.server != nil {
+		return r.server.Shutdown(ctx)
+	}
+	return nil
 }
 
 func (r *Prometheus) Receive(ctx context.Context, pd pprofile.Profiles) error {

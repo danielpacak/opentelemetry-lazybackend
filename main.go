@@ -12,7 +12,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -35,8 +37,6 @@ import (
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/filesystem"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/prometheus"
 	"github.com/danielpacak/opentelemetry-lazybackend/receiver/stdout"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -55,6 +55,9 @@ func run() error {
 	filesystemContainerID := flag.String("filesystem.container-id", "", "if set, the filesystem receiver only processes profiles with this container.id")
 	flag.Parse()
 
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	slog.Info("Starting GRPC server",
 		"endpoint", *address, "pid", os.Getpid(),
 		"uid", os.Getuid(), "gid", os.Getgid())
@@ -68,13 +71,7 @@ func run() error {
 	case "stdout":
 		profilesReceiver = stdout.NewReceiver(stdout.DefaultConfig())
 	case "prometheus":
-		profilesReceiver = prometheus.NewReceiver()
-		metricsAddr := *prometheusMetrics
-		go func() {
-			slog.Info("Starting metrics server", "endpoint", metricsAddr, "pattern", "/metrics")
-			http.Handle("/metrics", promhttp.Handler())
-			http.ListenAndServe(metricsAddr, nil)
-		}()
+		profilesReceiver = prometheus.NewReceiver(prometheus.Config{MetricsAddr: *prometheusMetrics})
 	case "filesystem":
 		config := filesystem.DefaultConfig()
 		config.Dir = *filesystemDir
@@ -84,6 +81,14 @@ func run() error {
 		return fmt.Errorf("unknown receiver %q (supported: stdout, prometheus, filesystem)", *receiverName)
 	}
 	slog.Info("Using profiles receiver", "receiver", *receiverName)
+	if err := profilesReceiver.Start(ctx); err != nil {
+		return err
+	}
+	defer func() {
+		stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		profilesReceiver.Stop(stopCtx)
+	}()
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
@@ -136,7 +141,8 @@ func run() error {
 		serverHTTP.Serve(listener)
 	}()
 
-	select {}
+	<-ctx.Done()
+	return nil
 }
 
 type profilesServer struct {

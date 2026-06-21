@@ -38,6 +38,10 @@ func NewReceiver(config Config) *Stdout {
 	}
 }
 
+func (s *Stdout) Start(_ context.Context) error { return nil }
+
+func (s *Stdout) Stop(_ context.Context) error { return nil }
+
 func (s *Stdout) Receive(ctx context.Context, pd pprofile.Profiles) error {
 	return s.consumeProfiles(ctx, pd)
 }

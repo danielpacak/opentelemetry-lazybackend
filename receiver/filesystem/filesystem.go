@@ -78,6 +78,10 @@ type stackTrace struct {
 	Frames      []frame           `json:"frames"`
 }
 
+func (f *Filesystem) Start(_ context.Context) error { return nil }
+
+func (f *Filesystem) Stop(_ context.Context) error { return nil }
+
 func (f *Filesystem) Receive(ctx context.Context, pd pprofile.Profiles) error {
 	return f.consumeProfiles(ctx, pd)
 }

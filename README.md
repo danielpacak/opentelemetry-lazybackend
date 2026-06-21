@@ -227,11 +227,23 @@ profiles to disk:
 Receiver-specific options are namespaced as `-<receiver>.<option>` (e.g.
 `-filesystem.dir`) so they are only meaningful for the matching receiver.
 
-## Filesystem Receiver
+## Receivers
 
-The filesystem receiver writes each received stack trace as a JSON file, grouped
-by `container.id` and separated by sample type (CPU `samples` vs event-based
-`events`):
+### Stdout Receiver
+
+The default receiver. Prints each incoming profile to standard output in a
+human-readable text format, including resource attributes, profile metadata,
+per-sample timestamps and attributes, and the full stack trace with
+instrumentation type, function name, file, and line number.
+
+```
+./opentelemetry-lazybackend -receiver stdout
+```
+
+### Filesystem Receiver
+
+Writes each received stack trace as a JSON file, grouped by `container.id` and
+separated by sample type (CPU `samples` vs event-based `events`):
 
 ```
 <filesystem.dir>/<container.id>/<sample-type>/<n>.json
@@ -271,11 +283,12 @@ its timestamps, attributes, and frames:
 }
 ```
 
-## Prometheus Receiver
+### Prometheus Receiver
 
-The Prometheus receiver allows gathering some stats about received profiles, stack traces, and functions.
-For example, the following Grafana dashboard shows the distribution of functions grouped by
-process executable name and language (= frame type).
+Exposes aggregated stats about received profiles, stack traces, and functions on
+the `/metrics` endpoint. For example, the following Grafana dashboard shows the
+distribution of functions grouped by process executable name and language
+(= frame type).
 
 ![](./docs/grafana-functions-distribution.png)
 

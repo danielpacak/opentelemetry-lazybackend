@@ -47,7 +47,8 @@ func main() {
 }
 
 func run() error {
-	address := flag.String("address", fmt.Sprintf("0.0.0.0:%d", 4317), "listen address (host:port)")
+	grpcAddress := flag.String("grpc-address", fmt.Sprintf("0.0.0.0:%d", 4317), "gRPC listen address (host:port)")
+	httpAddress := flag.String("http-address", fmt.Sprintf("0.0.0.0:%d", 4318), "HTTP listen address (host:port)")
 	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
 	// Receiver-specific options are namespaced as "<receiver>.<option>".
 	prometheusMetrics := flag.String("prometheus.metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "Prometheus metrics listen address (host:port)")
@@ -59,9 +60,9 @@ func run() error {
 	defer stop()
 
 	slog.Info("Starting GRPC server",
-		"endpoint", *address, "pid", os.Getpid(),
+		"endpoint", *grpcAddress, "pid", os.Getpid(),
 		"uid", os.Getuid(), "gid", os.Getgid())
-	lis, err := net.Listen("tcp", *address)
+	lis, err := net.Listen("tcp", *grpcAddress)
 	if err != nil {
 		return err
 	}
@@ -136,11 +137,11 @@ func run() error {
 		//IdleTimeout:       sc.IdleTimeout,
 		ErrorLog: slog.NewLogLogger(slog.NewTextHandler(os.Stderr, nil), slog.LevelError),
 	}
-	listener, err := net.Listen("tcp", "0.0.0.0:4318")
+	listener, err := net.Listen("tcp", *httpAddress)
 	if err != nil {
 		return err
 	}
-	slog.Info("Starting HTTP server", slog.String("endpoint", "0.0.0.0:4318"))
+	slog.Info("Starting HTTP server", slog.String("endpoint", *httpAddress))
 	go func() {
 		serverHTTP.Serve(listener)
 	}()

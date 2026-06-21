@@ -74,7 +74,7 @@ Or pull and run the pre-built image from Docker Hub:
 ```console
 docker run --rm --name lazybackend -p 4317:4317 -p 2112:2112 \
   docker.io/danielpacak/opentelemetry-lazybackend:latest \
-  -address 0.0.0.0:4317 \
+  -grpc-address 0.0.0.0:4317 \
   -receiver prometheus \
   -prometheus.metrics 0.0.0.0:2112
 ```
@@ -210,7 +210,8 @@ The backend is configured with the following flags:
 
 | Flag              | Default          | Description                                                       |
 |-------------------|------------------|-------------------------------------------------------------------|
-| `-address`        | `0.0.0.0:4317`   | gRPC listen address (`host:port`).                                |
+| `-grpc-address`   | `0.0.0.0:4317`   | gRPC listen address (`host:port`).                                |
+| `-http-address`   | `0.0.0.0:4318`   | HTTP listen address (`host:port`).                                |
 | `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
 | `-prometheus.metrics` | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`). Only used with `-receiver prometheus`. |
 | `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |

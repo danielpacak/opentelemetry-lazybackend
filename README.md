@@ -72,12 +72,17 @@ docker buildx build --platform=linux/arm64 --load \
 Or pull and run the pre-built image from Docker Hub:
 
 ```console
-docker run --rm --name lazybackend -p 4317:4317 -p 2112:2112 \
+docker run --rm --name lazybackend -p 4317:4317 -p 4318:4318 -p 2112:2112 \
   docker.io/danielpacak/opentelemetry-lazybackend:latest \
   -grpc-address 0.0.0.0:4317 \
+  -http-address 0.0.0.0:4318 \
   -receiver prometheus \
   -prometheus.metrics 0.0.0.0:2112
 ```
+
+The backend listens for OTLP profiles on two endpoints: gRPC on port `4317`
+(`-grpc-address`) and HTTP on port `4318` (`-http-address`). Publish both ports
+so producers can reach either listener.
 
 ## Quickstart Guide
 
@@ -299,7 +304,3 @@ distribution of functions grouped by process executable name and language
 
 Notice that the OTel Debug Exporter supports profiles, but is pretty useless because it dumps symbol
 tables separated from stack traces, which makes it too verbose and hard to read.
-
-As an alternative to the OTel Lazy Backend you may consider [devfiler].
-
-[devfiler]: https://github.com/elastic/devfiler

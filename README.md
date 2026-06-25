@@ -218,6 +218,7 @@ The backend is configured with the following flags:
 | `-grpc-address`   | `0.0.0.0:4317`   | gRPC listen address (`host:port`).                                |
 | `-http-address`   | `0.0.0.0:4318`   | HTTP listen address (`host:port`).                                |
 | `-receiver`       | `stdout`         | Profiles receiver to use: `stdout`, `prometheus`, or `filesystem`. |
+| `-stdout.sample-types` | _(empty)_   | Comma-separated profile sample types the `stdout` receiver prints, e.g. `samples`, `events`, or `samples,events`. Empty prints all. |
 | `-prometheus.metrics` | `127.0.0.1:2112` | Prometheus metrics listen address (`host:port`). Only used with `-receiver prometheus`. |
 | `-filesystem.dir` | `profiles`       | Output directory for the `filesystem` receiver.                   |
 | `-filesystem.container-id` | _(empty)_ | If set, the `filesystem` receiver only processes profiles with this `container.id`. |

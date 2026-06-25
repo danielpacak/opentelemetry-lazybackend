@@ -20,6 +20,9 @@ type Config struct {
 	ExportStackFrames                bool
 	ExportStackFrameTypes            []string
 	IgnoreProfilesWithoutContainerID bool
+	// SampleTypes filters which profiles are printed by their sample type
+	// (e.g. "samples", "events"). An empty slice prints all sample types.
+	SampleTypes []string
 }
 
 func DefaultConfig() Config {
@@ -91,6 +94,12 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 			for k := 0; k < pcs.Len(); k++ {
 				profile := pcs.At(k)
 
+				sampleType := getString(profile.SampleType().TypeStrindex())
+				if len(s.config.SampleTypes) > 0 &&
+					!slices.Contains(s.config.SampleTypes, sampleType) {
+					continue
+				}
+
 				fmt.Println("------------------- New Profile -------------------")
 				fmt.Printf("  ProfileID: %x\n", [16]byte(profile.ProfileID()))
 				fmt.Printf("  Time: %v\n", profile.Time().AsTime())
@@ -101,8 +110,6 @@ func (s *Stdout) consumeProfiles(_ context.Context, pd pprofile.Profiles) error 
 				fmt.Printf("  Period: %v\n", profile.Period())
 				fmt.Printf("  Dropped attributes count: %d\n", profile.DroppedAttributesCount())
 
-				sampleType := "samples"
-				sampleType = getString(profile.SampleType().TypeStrindex())
 				fmt.Printf("  SampleType: %s\n", sampleType)
 
 				profileAttrs := profile.AttributeIndices()

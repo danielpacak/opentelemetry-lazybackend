@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -54,6 +55,7 @@ func run() error {
 	httpAddress := flag.String("http-address", fmt.Sprintf("0.0.0.0:%d", 4318), "HTTP listen address (host:port)")
 	receiverName := flag.String("receiver", "stdout", "profiles receiver to use (stdout, prometheus, filesystem)")
 	// Receiver-specific options are namespaced as "<receiver>.<option>".
+	stdoutSampleTypes := flag.String("stdout.sample-types", "", "comma-separated profile sample types to print, e.g. \"samples\", \"events\", or \"samples,events\" (empty prints all)")
 	prometheusMetrics := flag.String("prometheus.metrics", fmt.Sprintf("127.0.0.1:%d", 2112), "Prometheus metrics listen address (host:port)")
 	filesystemDir := flag.String("filesystem.dir", "profiles", "output directory for the filesystem receiver")
 	filesystemContainerID := flag.String("filesystem.container-id", "", "if set, the filesystem receiver only processes profiles with this container.id")
@@ -74,6 +76,13 @@ func run() error {
 	switch *receiverName {
 	case "stdout":
 		cfg := stdout.DefaultConfig()
+		if *stdoutSampleTypes != "" {
+			for t := range strings.SplitSeq(*stdoutSampleTypes, ",") {
+				if t = strings.TrimSpace(t); t != "" {
+					cfg.SampleTypes = append(cfg.SampleTypes, t)
+				}
+			}
+		}
 		profilesReceiver = stdout.NewReceiver(cfg)
 		slog.Info("Using profiles receiver", "receiver", *receiverName, "config", cfg)
 	case "prometheus":

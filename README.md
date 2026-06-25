@@ -304,3 +304,7 @@ distribution of functions grouped by process executable name and language
 
 Notice that the OTel Debug Exporter supports profiles, but is pretty useless because it dumps symbol
 tables separated from stack traces, which makes it too verbose and hard to read.
+
+## License
+
+This project is licensed under the [Apache License 2.0](./LICENSE).

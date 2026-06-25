@@ -1,3 +1,6 @@
+// Copyright 2026 Lazybackend Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package filesystem implements a receiver that persists received profiles to
 // a directory tree. The layout groups stack traces by container and separates
 // them by sample type, e.g.:

